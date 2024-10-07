@@ -1,22 +1,22 @@
 #include <iostream>
-#include <map>
-#include <mutex> // for call_once
-#include <numeric>
-#include <optional>
 #include <string>
-#include <utility>
 #include <vector>
-#include <thread>
 #include <algorithm>
+#include <bits/stdc++.h>
+#include <cctype>
+
+#define MAX_ASCII_NUM 128
 
 // 1. Is Unique
-bool isUniqueCharacter(const std::string str)
+bool isUniqueCharacter(const std::string &str)
 {
-    if (str.length() > 128)
+    auto len = str.length();
+    if (len > MAX_ASCII_NUM)
         return false;
 
-    bool charSet[128] = {};
-    for (int i = 0; i < str.length(); i++)
+    bool charSet[MAX_ASCII_NUM] = {}; // dynamic programing
+
+    for (int i = 0; i < len; i++)
     {
         int val = (int)str.at(i);
         if (charSet[val])
@@ -31,17 +31,22 @@ bool isUniqueCharacter(const std::string str)
 
 /* 2. Permutation (hoán vị)
     "dog", "god", "dgo"
-*/
-bool permutation(const std::string first, const std::string second)
-{
-    if (first.length() != second.length())
-        return false;
 
-    for (int i = 0; i < first.length(); i++)
-    {
-        if (second.find(first.at(i)) == -1)
-            return false;
-    }
+    'aabbcc'
+    'aaabbc'
+*/
+bool permutation(std::string &first, std::string &second)
+{
+    // 1. check len
+    if (first.empty() || first.length() != second.length())
+        return false;
+    // 2. sort
+    std::sort(first.begin(), first.end());
+    std::sort(second.begin(), second.end());
+
+    // 3.
+    if (first != second)
+        return false;
 
     return true;
 }
@@ -49,16 +54,15 @@ bool permutation(const std::string first, const std::string second)
 /* 3. Palindrome Permutation (đối xứng)
     "dog cat" <----->"tac god"
 */
-bool isPalindromePermutation(const std::string first, const std::string second)
+bool isPalindromePermutation(const std::string &first, const std::string &second)
 {
-    if (first.length() != second.length())
+    if (first.empty() || first.length() != second.length())
         return false;
 
-    std::string tmp;
-    for (int i = second.length() - 1; i > -1; i--)
+    int len = second.length();
+    for (int i = 0; i < len; i++)
     {
-
-        if (first.at(second.length() - i - 1) != second.at(i))
+        if (second.at(i) != first.at(len - i - 1))
             return false;
     }
 
@@ -66,26 +70,21 @@ bool isPalindromePermutation(const std::string first, const std::string second)
 }
 
 /*
-    4. split a string by demiliter
+    4. split a string by delimiter
 
     splitString("one two three", ' ');
 */
-std::vector<std::string> splitString(const std::string str, const char delim)
+std::vector<std::string> splitString(std::string &str, const std::string &delimiter)
 {
     std::vector<std::string> ret;
-    std::string tmp = "";
-    for (int i = 0; i < str.length(); i++)
+    std::size_t pos = str.find(delimiter);
+    while (pos != std::string::npos)
     {
-        if (str.at(i) == delim)
-        {
-            ret.push_back(tmp);
-            tmp = "";
-            continue;
-        }
-        tmp += str.at(i);
-        if (i == str.length() - 1)
-            ret.push_back(tmp);
+        ret.push_back(str.substr(0, pos));
+        str.erase(0, pos + delimiter.length());
+        pos = str.find(delimiter);
     }
+    ret.push_back(str);
 
     return ret;
 }
@@ -99,80 +98,49 @@ std::vector<std::string> splitString(const std::string str, const char delim)
 */
 std::string replaceString(std::string &str, const std::string &from, const std::string &to)
 {
-    std::string ret;
-    std::vector<std::string> v;
-    for (int i = 0; i < str.length();)
+    // find from
+    std::string ss;
+    auto pos = str.find(from);
+    while (pos != std::string::npos)
     {
-        bool isFound = false;
-        int tmp = 1;
-        if (str.at(i) == from.at(0))
-        {
-            for (int j = 1; j < from.length(); j++)
-            {
-                if (str.at(i + j) != from.at(j))
-                {
-                    break;
-                }
-                tmp++;
-                isFound = true;
-            }
-        }
-        if (isFound)
-        {
-            v.push_back(ret);
-            v.push_back(to);
-            ret = "";
-            i += tmp;
-        }
-        else
-        {
-            ret += str.at(i);
-            if (i == str.length() - 1)
-                v.push_back(ret);
-            i++;
-        }
-    }
-    ret = "";
-    for (auto i : v)
-    {
-        ret += i;
+        ss += str.substr(0, pos) + to;
+
+        str.erase(0, pos + from.length());
+        pos = str.find(from);
     }
 
-    return ret;
+    ss += str;
+
+    return ss;
 }
 
 // 6.
-std::string trimLeft(std::string const &buffer, std::string const &tokens)
+std::string trimLeft(const std::string &buffer, const std::string &token)
 {
-    std::string ret;
-    bool isTrim = true;
-    for (int i = 0; i < buffer.length(); i++)
+    // abcdef
+    std::string ret = buffer;
+    auto pos = buffer.find(token);
+    int tokenLen = token.length();
+    while (pos == 0)
     {
-        if (std::string(tokens.length(), buffer[i]) == tokens && isTrim)
-        {
-            continue;
-        }
-        isTrim = false;
-        ret += buffer.at(i);
+        ret.erase(0, tokenLen);
+        pos = ret.find(token);
     }
     return ret;
 }
 
 // 7.
-std::string trimRight(std::string const &buffer, std::string const &tokens)
+std::string trimRight(const std::string &buffer, const std::string &token)
 {
-    std::string ret;
-    bool isTrim = true;
-    for (int i = buffer.length() - 1; i > -1; i--)
+    std::string ret = buffer;
+    auto pos = buffer.find_last_of(token);
+    int tokenLen = token.length();
+    int bufferLen = buffer.length();
+    while (pos == ret.length() - tokenLen)
     {
-        if (std::string(tokens.length(), buffer[i]) == tokens && isTrim)
-        {
-            continue;
-        }
-        isTrim = false;
-        ret += buffer.at(i);
+        ret.erase(pos, tokenLen);
+        pos = ret.find_last_of(token);
     }
-    std::reverse(ret.begin(), ret.end());
     return ret;
 }
 
@@ -180,106 +148,69 @@ std::string trimRight(std::string const &buffer, std::string const &tokens)
     8. strim String
     strimString("  one two three  ", " ");
 
-    Result: "onetwothree"
+    Result: "one two three"
 */
 
-std::string strimString(const std::string &str, std::string const &tokens)
+std::string strimString(const std::string &str, const std::string &tokens)
 {
     std::string left = trimLeft(str, tokens);
     std::string ret = trimRight(left, tokens);
     return ret;
 }
 
+//  asd/asd/aaa/d.c
 // 9.
-std::string baseName(std::string const &path)
+std::string baseName(const std::string &path)
 {
-    std::string ret;
-    for (int i = path.length() - 1; i > -1; i--)
-    {
-        if (std::string(1, path.at(i)) == "/")
-        {
-            break;
-        }
-        ret += path.at(i);
-    }
-    std::reverse(ret.begin(), ret.end());
+    std::string ret = path;
+    auto pos = path.find_last_of("/");
+    ret = path.substr(pos + 1, std::string::npos);
+
     return ret;
 }
 
 // 10.
-std::string dirName(std::string const &path)
+std::string dirName(const std::string &path)
 {
     std::string ret;
-    bool isLast = true;
-    for (int i = path.length() - 1; i > -1; i--)
-    {
-        // asd/asd/d.c
-        if (std::string(1, path.at(i)) == "/" && isLast)
-        {
-            isLast = false;
-            continue;
-        }
-        if (isLast)
-        {
-            continue;
-        }
-        ret += path.at(i);
-    }
-    std::reverse(ret.begin(), ret.end());
+    auto pos = path.find_last_of("/");
+    ret = path.substr(0, pos);
+
     return ret;
 }
 
 // 11.
-std::string getFileExtension(std::string const &path)
+std::string getFileExtension(const std::string &path)
 {
+    // aac.add.c
+    std::string getBaseName = baseName(path);
+    auto pos = getBaseName.find_last_of(".");
     std::string ret;
-    for (int i = path.length() - 1; i > -1; i--)
-    {
-        ret += path.at(i);
-        if (std::string(1, path.at(i)) == ".")
-        {
-            break;
-        }
-    }
-    std::reverse(ret.begin(), ret.end());
+    ret = getBaseName.substr(pos + 1, std::string::npos);
+
     return ret;
 }
 
-// 12. ASCII: (65-90)+32
-std::string toLower(std::string const &str)
+// 12.
+std::string toLower(std::string &str)
 {
-    std::string ret;
-    for (int i = 0; i < str.length(); i++)
-    {
-        if ((int)str.at(i) > 90 || (int)str.at(i) < 65)
-        {
-            ret += str.at(i);
-            continue;
-        }
-        ret += std::string(1, char((int)str.at(i) + 32));
-    }
-    return ret;
+    std::transform(str.begin(), str.end(), str.begin(),
+                   [](unsigned char c)
+                   { return std::tolower(c); });
+    return str;
 }
 
-// 13. ASCII: (97-122)-32
-std::string toUpper(std::string const &str)
+// 13. ASCII:
+std::string toUpper(std::string &str)
 {
-    std::string ret;
-    for (int i = 0; i < str.length(); i++)
-    {
-        if ((int)str.at(i) > 122 || (int)str.at(i) < 97)
-        {
-            ret += str.at(i);
-            continue;
-        }
-        ret += std::string(1, char((int)str.at(i) - 32));
-    }
-    return ret;
+    std::transform(str.begin(), str.end(), str.begin(),
+                   [](unsigned char c)
+                   { return std::toupper(c); });
+    return str;
 }
 
 int main()
 {
-    // std::cout << __LINE__ << " | " << val << std::endl;
     // 1.
     std::string str_1 = "zxcvbnm";
     // bool check = isUniqueCharacter(str_1);
@@ -299,10 +230,9 @@ int main()
 
     // 4.
     std::string str_4 = "asd qwe dfg vbn dfg lkj";
-    // char c = ' ';
-    // std::vector<std::string> v = splitString(str_4, c);
+    // std::string c = " ";
     // std::cout << "String: " << str_4 << std::endl;
-    // std::cout << "Split string: " << str_4 << std::endl;
+    // std::vector<std::string> v = splitString(str_4, c);
     // for (auto i : v)
     // {
     //     std::cout << i << std::endl;
@@ -317,21 +247,20 @@ int main()
 
     // 6.
     std::string str_6 = "aaaabasdaaaa";
-    // std::string strTrim = " ";
+    std::string strTrim = "a";
     // std::cout << "String: " << str_6 << std::endl;
-    // std::cout << "Trim left: " << trimLeft(str_6, "a") << "." << std::endl;
+    // std::cout << "Trim left: " << trimLeft(str_6, strTrim) << "." << std::endl;
 
     // 7.
-    std::string strTrim = " ";
     // std::cout << "String: " << str_6 << std::endl;
-    // std::cout << "Trim right: " << trimRight(str_6, "a") << "." << std::endl;
+    // std::cout << "Trim right: " << trimRight(str_6, strTrim) << "." << std::endl;
 
     // 8.
     // std::cout << "String: " << str_6 << std::endl;
-    // std::cout << "Trim right: " << strimString(str_6, "a") << "." << std::endl;
+    // std::cout << "Trim: " << strimString(str_6, "a") << "." << std::endl;
 
     // 9.
-    std::string path = "qwe/asd/abc.io.txt";
+    std::string path = "/qwe/asd/abc.io.txt";
     // std::cout << "File: " << path << std::endl;
     // std::cout << "Basename: " << baseName(path) << std::endl;
 
@@ -339,9 +268,7 @@ int main()
     // std::cout << "Dirname: " << dirName(path) << std::endl;
 
     // 11.
-    std::string file = "abc.io.txt";
-    // std::cout << "File: " << file << std::endl;
-    // std::cout << "File extension: " << getFileExtension(file) << std::endl;
+    // std::cout << "File extension: " << getFileExtension(path) << std::endl;
 
     // 12.
     std::string str_12 = "ASDF_gh!JKL";
