@@ -73,6 +73,54 @@ void quickSort(std::vector<int> &arr, int low, int high)
     }
 }
 
+void merge(std::vector<int> &arr, const std::vector<int> &left, std::vector<int> &right)
+{
+    std::vector<int> tmp;
+    int li = 0;
+    int ri = 0;
+
+    while(li < left.size() && ri < right.size())
+    {
+        if (left[li] < right[ri])
+        {
+            tmp.push_back(left[li]);
+            li++;
+        }
+        else
+        {
+            tmp.push_back(right[ri]);
+            ri++;
+        }
+    }
+
+    while (li < left.size())
+    {
+        tmp.push_back(left[li]);
+        li++;
+    }
+
+    while (ri < right.size())
+    {
+        tmp.push_back(right[ri]);
+        ri++;
+    }
+
+    arr = tmp;
+}
+
+void mergeSort(std::vector<int> &arr)
+{
+    if (arr.size() == 1) return;
+
+    std::vector<int>::iterator mid = arr.begin() + (arr.size() / 2);
+    std::vector<int> left(arr.begin(), mid);
+    std::vector<int> right(mid, arr.end());
+
+    mergeSort(left);
+    mergeSort(right);
+    merge(arr, left, right);
+}
+
 void printVector(const std::vector<int> &arr)
 {
     for (int num : arr)
@@ -87,7 +135,8 @@ int main()
     printVector(arr);
     // bubbleSort(arr);
     // insertionSort(arr);
-    quickSort(arr, 0, arr.size() - 1);
+    // quickSort(arr, 0, arr.size() - 1);
+    mergeSort(arr);
     std::cout << "Sorted array: \n";
     printVector(arr);
 
